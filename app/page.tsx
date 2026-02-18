@@ -127,9 +127,18 @@ export default function Home() {
 
           if (!title.trim() || !url.trim()) return;
 
+          let finalUrl = url.trim();
+
+          if (
+            !finalUrl.startsWith("http://") &&
+            !finalUrl.startsWith("https://")
+          ) {
+            finalUrl = `https://${finalUrl}`;
+          }
+
           const { error } = await supabase.from("bookmarks").insert({
             title,
-            url,
+            url: finalUrl,
             user_id: user.id,
           });
 
