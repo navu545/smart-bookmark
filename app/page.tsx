@@ -14,6 +14,32 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
 
+  // Track URL input + validation state
+  const [urlValue, setUrlValue] = useState("");
+  const [urlError, setUrlError] = useState<string | null>(null);
+
+  // Validate URL format for UI + submit disabling
+  const validateUrl = (value: string) => {
+    if (!value.trim()) return "URL is required";
+
+    let testUrl = value.trim();
+
+    if (!testUrl.startsWith("http://") && !testUrl.startsWith("https://")) {
+      testUrl = `https://${testUrl}`;
+    }
+
+    try {
+      const parsed = new URL(testUrl);
+
+      if (!parsed.hostname.includes(".")) {
+        return "Please enter a valid domain";
+      }
+
+      return null;
+    } catch {
+      return "Invalid URL format";
+    }
+  };
 
   useEffect(() => {
     // Fetch the current authenticated user on initial load
@@ -62,6 +88,7 @@ export default function Home() {
 
       setBookmarks(data ?? []);
     };
+
     // Subscribe to realtime changes for this user's bookmarks
     const channel = supabase
       .channel("bookmarks-realtime")
@@ -83,8 +110,6 @@ export default function Home() {
       supabase.removeChannel(channel);
     };
   }, [user]);
-
-
 
   if (!user) {
     return (
@@ -115,19 +140,20 @@ export default function Home() {
       >
         Logout
       </button>
+
       <form
-        className="mt-4 flex gap-2"
+        className="mt-4 flex gap-2 items-start"
         onSubmit={async (e) => {
           e.preventDefault();
+
+          // Prevent submit if URL is invalid
+          if (urlError) return;
+
           const form = e.currentTarget;
           const title = (form.elements.namedItem("title") as HTMLInputElement)
             .value;
-          const url = (form.elements.namedItem("url") as HTMLInputElement)
-            .value;
 
-          if (!title.trim() || !url.trim()) return;
-
-          let finalUrl = url.trim();
+          let finalUrl = urlValue.trim();
 
           if (
             !finalUrl.startsWith("http://") &&
@@ -147,6 +173,8 @@ export default function Home() {
           }
 
           form.reset();
+          setUrlValue("");
+          setUrlError(null);
         }}
       >
         <input
@@ -155,13 +183,36 @@ export default function Home() {
           className="border px-2 py-1"
           required
         />
-        <input
-          name="url"
-          placeholder="https://example.com"
-          className="border px-2 py-1"
-          required
-        />
-        <button className="cursor-pointer bg-black px-3 py-1 text-white">
+
+        
+        <div className="flex flex-col">
+          <input
+            name="url"
+            placeholder="https://example.com"
+            className={`border px-2 py-1 ${urlError ? "border-red-500" : ""}`}
+            value={urlValue}
+            onChange={(e) => {
+              const value = e.target.value;
+              setUrlValue(value);
+              setUrlError(validateUrl(value));
+            }}
+            required
+          />
+
+          
+          <p className="text-xs text-red-500 mt-1 min-h-[1rem]">
+            {urlError ?? ""}
+          </p>
+        </div>
+
+        <button
+          disabled={!!urlError}
+          className={`px-3 py-1 text-white ${
+            urlError
+              ? "cursor-not-allowed bg-gray-400"
+              : "cursor-pointer bg-black"
+          }`}
+        >
           Add
         </button>
       </form>
