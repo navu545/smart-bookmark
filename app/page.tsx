@@ -98,7 +98,7 @@ export default function Home() {
               },
             })
           }
-          className="rounded bg-black px-4 py-2 text-white"
+          className="cursor-pointer rounded bg-black px-4 py-2 text-white"
         >
           Sign in with Google
         </button>
@@ -111,7 +111,7 @@ export default function Home() {
       <h1 className="text-xl font-semibold">Welcome, {user.email}</h1>
       <button
         onClick={() => supabase.auth.signOut()}
-        className="mt-2 text-sm text-blue-600 underline"
+        className="cursor-pointer mt-2 text-sm text-blue-600 underline"
       >
         Logout
       </button>
@@ -124,7 +124,7 @@ export default function Home() {
             .value;
           const url = (form.elements.namedItem("url") as HTMLInputElement)
             .value;
-          
+
           if (!title.trim() || !url.trim()) return;
 
           const { error } = await supabase.from("bookmarks").insert({
@@ -135,7 +135,7 @@ export default function Home() {
 
           if (error) {
             console.error(error.message);
-          } 
+          }
 
           form.reset();
         }}
@@ -152,7 +152,9 @@ export default function Home() {
           className="border px-2 py-1"
           required
         />
-        <button className="bg-black px-3 py-1 text-white">Add</button>
+        <button className="cursor-pointer bg-black px-3 py-1 text-white">
+          Add
+        </button>
       </form>
 
       <ul className="mt-4 space-y-2">
@@ -170,7 +172,7 @@ export default function Home() {
               onClick={async () => {
                 await supabase.from("bookmarks").delete().eq("id", b.id);
               }}
-              className="text-red-500"
+              className="cursor-pointer text-red-500"
             >
               Delete
             </button>
